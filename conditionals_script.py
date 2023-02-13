@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+"""
+This script, trashy as it may be right now, searches for ifevals w/context or attribute mismatches in the OCP docs repo.
+"""
 import os
 import re
 
