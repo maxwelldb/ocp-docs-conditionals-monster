@@ -10,79 +10,48 @@ modules_path = os.path.join(project_path, "modules")
 
 
 def collect_modules(location):
-    module_collection = []
-
-    modules_list = os.listdir(location)
-
-    for module in modules_list:
-        if module.endswith(".adoc"):
-            module_collection.append(module)
-
-    return module_collection
+    return [module for module in os.listdir(location) if module.endswith(".adoc")]
 
 
 def find_ifevals_in_module(adoc_content):
-    ifevals_collection = []
     ifeval_re = re.compile(r'ifeval::\["{context}"\s*==\s*".*"\](?:\n|.)*?endif::\[\]')
-
-    for ifeval in re.findall(ifeval_re, adoc_content):
-        ifevals_collection.append(ifeval)
-
-    return ifevals_collection
-
+    return re.findall(ifeval_re, adoc_content)
 
 def get_contexts_from_ifeval(ifeval):
     context_re = re.compile(r'\["{context}"\s==\s"([a-z0-9-]+)"\]')
     contexts = re.findall(context_re, ifeval)
-    if contexts:
-        return contexts
-    else:
-        return None
+    return contexts or None
 
 
 def get_attrs_from_ifeval(ifeval):
     attr_re = re.compile(r":([A-Za-z-!]+):")
     attributes = re.findall(attr_re, ifeval)
-    if attributes:
-        return attributes
-    else:
-        return None
+    return attributes or None
 
 
 def compare_contexts(contexts):
-    if contexts is None or len(contexts) == 0:
-        return None
-    else:
-        context_dict = {}
-        for context in contexts:
-            if context in context_dict:
-                context_dict[context] += 1
-            else:
-                context_dict[context] = 1
-        for context, count in context_dict.items():
-            if count % 2 != 0:
-                print(f"Mismatch detected for context {context}")
+    if not contexts:
+        return
+    context_dict = {}
+    for context in contexts:
+        context_dict[context] = context_dict.get(context, 0) + 1
+    for context, count in context_dict.items():
+        if count % 2 != 0:
+            print(f"Mismatch detected for context {context}")
 
 def compare_attrs(attrs):
-    if attrs is None or len(attrs) == 0:
-        return None
-    else:
-        attr_dict = {}
-        for attr in attrs:
-            if attr[0] == "!":
-                attr = attr[1:]
-                if attr in attr_dict:
-                    attr_dict[attr] -= 1
-                else:
-                    attr_dict[attr] = -1
-            else:
-                if attr in attr_dict:
-                    attr_dict[attr] += 1
-                else:
-                    attr_dict[attr] = 1
-        for attr, count in attr_dict.items():
-            if count != 0:
-                print(f"Mismatch detected for attribute {attr}")
+    if not attrs:
+        return
+    attr_dict = {}
+    for attr in attrs:
+        if attr[0] == "!":
+            attr = attr[1:]
+            attr_dict[attr] = attr_dict.get(attr, 0) - 1
+        else:
+            attr_dict[attr] = attr_dict.get(attr, 0) + 1
+    for attr, count in attr_dict.items():
+        if count != 0:
+            print(f"Mismatch detected for attribute {attr}")
 
 
 def main():
