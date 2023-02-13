@@ -50,10 +50,39 @@ def get_attrs_from_ifeval(ifeval):
 
 
 def compare_contexts(contexts):
-    return None
+    if contexts is None or len(contexts) == 0:
+        return None
+    else:
+        context_dict = {}
+        for context in contexts:
+            if context in context_dict:
+                context_dict[context] += 1
+            else:
+                context_dict[context] = 1
+        for context, count in context_dict.items():
+            if count % 2 != 0:
+                print(f"Mismatch detected for context {context}")
 
 def compare_attrs(attrs):
-    return None
+    if attrs is None or len(attrs) == 0:
+        return None
+    else:
+        attr_dict = {}
+        for attr in attrs:
+            if attr[0] == "!":
+                attr = attr[1:]
+                if attr in attr_dict:
+                    attr_dict[attr] -= 1
+                else:
+                    attr_dict[attr] = -1
+            else:
+                if attr in attr_dict:
+                    attr_dict[attr] += 1
+                else:
+                    attr_dict[attr] = 1
+        for attr, count in attr_dict.items():
+            if count != 0:
+                print(f"Mismatch detected for attribute {attr}")
 
 
 def main():
@@ -64,21 +93,23 @@ def main():
         contexts = []
         attrs = []
         with open(mod, "r") as file:
-            print(file.name)
+            print(f"Scanning {mod}")
             module_content = file.read()
             for ifeval in find_ifevals_in_module(module_content):
                 contexts.append(get_contexts_from_ifeval(ifeval))
                 attrs.append(get_attrs_from_ifeval(ifeval))
-
-        print(list(chain.from_iterable(contexts)))
         try:
-            print(list(chain.from_iterable(attrs)))
+            contexts = list(chain.from_iterable(contexts))
+            attrs = list(chain.from_iterable(attrs))
+            if contexts is not None or attrs is not None:
+                compare_contexts(contexts)
+                compare_attrs(attrs)
         except:
-            print(f"yikes in {file.name}")
+            # Try block is bad at the moment. Improve. Too many NoneTypes that I'm not dealing with in compare functions.
+            print(f"NoneType error in {mod}")
 
-    # get contexts should have two of each term
-    #   - fail and alert if not
-    # get attrs should look for matching attributes--one declaration, one negation
+
+
 
 
 if __name__ == "__main__":
